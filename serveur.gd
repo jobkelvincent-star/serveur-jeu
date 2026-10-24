@@ -6,6 +6,7 @@ const PORT_PAR_DEFAUT := 8080
 
 var peer: WebSocketMultiplayerPeer
 var lobby: Node
+var partie: Node = null                          # la partie en cours (noeud "main" + ReglesJeu, comme dans le jeu)
 
 
 func _initialize() -> void:
@@ -22,6 +23,8 @@ func _initialize() -> void:
 	lobby.name = "Lobby"
 	lobby.set_script(load("res://lobby.gd"))
 	root.add_child(lobby)
+	lobby.connect("partie_formee", _lancer_partie)
+	lobby.connect("salle_vide", _fermer_partie)
 	get_multiplayer().multiplayer_peer = peer
 	get_multiplayer().peer_connected.connect(_arrivee)
 	get_multiplayer().peer_disconnected.connect(_depart)
@@ -35,3 +38,31 @@ func _arrivee(id: int) -> void:
 func _depart(id: int) -> void:
 	lobby.call("depart_joueur", id)
 	print("SERVEUR : un joueur part (n° ", id, "). Joueurs connectés : ", get_multiplayer().get_peers().size())
+
+
+# Une partie vient d'être formée : je crée les règles du jeu (au même endroit que dans le jeu : /root/main/ReglesJeu)
+func _lancer_partie(groupe: Array, mode: int) -> void:
+	_fermer_partie()
+	partie = Node.new()
+	partie.name = "main"                                  # même nom que la scène du jeu (main.tscn)
+	root.add_child(partie)
+	var regles := Node.new()
+	regles.name = "ReglesJeu"
+	regles.set_script(load("res://regles_jeu.gd"))
+	var ids: Array = []
+	for e in groupe:
+		ids.append(e["id"])
+	regles.set("dedie", true)
+	regles.set("mode", mode)
+	regles.set("attendus", mode * 2)
+	regles.set("autorises", ids)
+	partie.add_child(regles)
+	print("SERVEUR : partie ", mode, "v", mode, " créée pour ", ids)
+
+
+func _fermer_partie() -> void:
+	if partie != null:
+		partie.name = "ancienne_partie"                   # libère le nom "main" tout de suite
+		partie.queue_free()
+		partie = null
+		print("SERVEUR : partie fermée")

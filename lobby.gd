@@ -16,6 +16,7 @@ signal partie_trouvee(mode: int, equipe: int, place: int)
 
 # ---- Côté SERVEUR ----
 signal partie_formee(groupe: Array, mode: int)
+signal salle_vide
 var attente: Array = []          # joueurs qui cherchent : {id, scene, vote, dispo, depuis}
 var salle: Array = []            # numéros des joueurs de la partie en cours
 var _tic := 0.0
@@ -71,6 +72,7 @@ func depart_joueur(id: int) -> void:
 		salle.erase(id)
 		if salle.is_empty():
 			print("LOBBY : la partie est terminée, la salle est libre")
+			salle_vide.emit()
 
 
 func _retirer_attente(id: int) -> void:
