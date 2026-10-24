@@ -17,6 +17,10 @@ func _initialize() -> void:
 		print("SERVEUR : impossible d'ouvrir le port ", port, " (erreur ", erreur, ")")
 		quit(1)
 		return
+	var test := Node.new()                               # nœud de test du relais (voir relais.gd)
+	test.name = "TestRelais"
+	test.set_script(load("res://relais.gd"))
+	root.add_child(test)
 	get_multiplayer().multiplayer_peer = peer
 	get_multiplayer().peer_connected.connect(_arrivee)
 	get_multiplayer().peer_disconnected.connect(_depart)
