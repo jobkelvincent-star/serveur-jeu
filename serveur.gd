@@ -1,10 +1,11 @@
 extends SceneTree
-# SERVEUR DU JEU (étape 1 : il écoute et note qui arrive / qui part ; la recherche de partie viendra à l'étape suivante).
+# SERVEUR DU JEU (il écoute, note qui arrive / qui part, et gère la recherche de partie : voir lobby.gd).
 # Il tourne SANS écran, sur l'hébergeur. Le port vient de la variable PORT (donnée par l'hébergeur), sinon 8080.
 
 const PORT_PAR_DEFAUT := 8080
 
 var peer: WebSocketMultiplayerPeer
+var lobby: Node
 
 
 func _initialize() -> void:
@@ -17,10 +18,10 @@ func _initialize() -> void:
 		print("SERVEUR : impossible d'ouvrir le port ", port, " (erreur ", erreur, ")")
 		quit(1)
 		return
-	var test := Node.new()                               # nœud de test du relais (voir relais.gd)
-	test.name = "TestRelais"
-	test.set_script(load("res://relais.gd"))
-	root.add_child(test)
+	lobby = Node.new()                                   # la recherche de partie (voir lobby.gd)
+	lobby.name = "Lobby"
+	lobby.set_script(load("res://lobby.gd"))
+	root.add_child(lobby)
 	get_multiplayer().multiplayer_peer = peer
 	get_multiplayer().peer_connected.connect(_arrivee)
 	get_multiplayer().peer_disconnected.connect(_depart)
@@ -32,4 +33,5 @@ func _arrivee(id: int) -> void:
 
 
 func _depart(id: int) -> void:
+	lobby.call("depart_joueur", id)
 	print("SERVEUR : un joueur part (n° ", id, "). Joueurs connectés : ", get_multiplayer().get_peers().size())
