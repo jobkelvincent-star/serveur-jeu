@@ -1,0 +1,7 @@
+; Projet du SERVEUR (aucun graphisme : il tourne sans écran)
+config_version=5
+
+[application]
+
+config/name="Serveur du jeu"
+run/main_loop_type="SceneTree"
